@@ -39,6 +39,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.DCMotorEx;
+import org.firstinspires.ftc.teamcode.PIDController;
 
 
 /*
@@ -58,10 +60,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 public class DriveOpMode extends LinearOpMode {
 
     // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftDrive = null;
     private DcMotor rightDrive = null;
     private BHI260IMU gyro;
+
+    private final PIDController pidController = new PIDController(0, 0, 0);
+
+
+    // PID control variables
+    // Adjust the kP, kI, kD values according to the robot's needs
+
+
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -82,24 +91,24 @@ public class DriveOpMode extends LinearOpMode {
 
         // Wait for the game to start (driver presses START)
         waitForStart();
-        runtime.reset();
 
-        // run until the end of the match (driver presses STOP)
-        while (opModeIsActive()) {
 
             // Setup a variable for each drive wheel to save power level for telemetry
-            double leftPower;
-            double rightPower;
+        double leftPower;
+        double rightPower;
 
-            // Choose to drive using either Tank Mode, or POV Mode
-            // Comment out the method that's not used.  The default below is POV.
 
-            // POV Mode uses left stick to go forward, and right stick to turn.
-            // - This uses basic math to combine motions and is easier to drive straight.
+        while (opModeIsActive()) {
+            YawPitchRollAngles angles = gyro.getRobotYawPitchRollAngles();
+            double currentAngle = angles.getYaw(AngleUnit.DEGREES);
+
             double drive = -gamepad1.left_stick_y;
             double turn  =  gamepad1.right_stick_x;
-            leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
-            rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
+
+            double correctionValue = pidController.update(currentAngle);
+
+            leftPower    = Range.clip(drive + turn + correctionValue, -1.0, 1.0) ;
+            rightPower   = Range.clip(drive - turn - correctionValue, -1.0, 1.0) ;
 
             // Tank Mode uses one stick to control each wheel.
             // - This requires no math, but it is hard to drive forward slowly and keep straight.
@@ -110,10 +119,11 @@ public class DriveOpMode extends LinearOpMode {
             leftDrive.setPower(leftPower);
             rightDrive.setPower(rightPower);
 
-           YawPitchRollAngles angles = gyro.getRobotYawPitchRollAngles();
+            if (turn != 0) {
+                pidController.setTargetValue(currentAngle);
+            }
 
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
+// Show the elapsed game time and wheel power.
             telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.addData("Gyro", "yaw: %.2f | pitch: %.2f | roll: %.2f", angles.getYaw(AngleUnit.DEGREES), angles.getPitch(AngleUnit.DEGREES), angles.getRoll(AngleUnit.DEGREES));
             telemetry.update();
