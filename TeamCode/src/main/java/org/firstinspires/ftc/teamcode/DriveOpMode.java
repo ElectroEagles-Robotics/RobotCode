@@ -40,6 +40,8 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.DCMotorEx;
+import org.firstinspires.ftc.teamcode.DriveTrain;
+import org.firstinspires.ftc.teamcode.Gyro;
 import org.firstinspires.ftc.teamcode.PIDController;
 
 
@@ -60,11 +62,8 @@ import org.firstinspires.ftc.teamcode.PIDController;
 public class DriveOpMode extends LinearOpMode {
 
     // Declare OpMode members.
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
-    private BHI260IMU gyro;
-
-    private final PIDController pidController = new PIDController(0, 0, 0);
+    private final Gyro gyro = new Gyro(hardwareMap);
+    private final DriveTrain drivetrain = new DriveTrain(hardwareMap, gyro);
 
 
     // PID control variables
@@ -79,54 +78,13 @@ public class DriveOpMode extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
-        gyro = hardwareMap.get(BHI260IMU.class, "imu");
-        // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-        // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
-
 
         // Wait for the game to start (driver presses START)
         waitForStart();
 
 
-            // Setup a variable for each drive wheel to save power level for telemetry
-        double leftPower;
-        double rightPower;
-
-
         while (opModeIsActive()) {
-            YawPitchRollAngles angles = gyro.getRobotYawPitchRollAngles();
-            double currentAngle = angles.getYaw(AngleUnit.DEGREES);
-
-            double drive = -gamepad1.left_stick_y;
-            double turn  =  gamepad1.right_stick_x;
-
-            double correctionValue = pidController.update(currentAngle);
-
-            leftPower    = Range.clip(drive + turn + correctionValue, -1.0, 1.0) ;
-            rightPower   = Range.clip(drive - turn - correctionValue, -1.0, 1.0) ;
-
-            // Tank Mode uses one stick to control each wheel.
-            // - This requires no math, but it is hard to drive forward slowly and keep straight.
-            // leftPower  = -gamepad1.left_stick_y ;
-            // rightPower = -gamepad1.right_stick_y ;
-
-            // Send calculated power to wheels
-            leftDrive.setPower(leftPower);
-            rightDrive.setPower(rightPower);
-
-            if (turn != 0) {
-                pidController.setTargetValue(currentAngle);
-            }
-
-// Show the elapsed game time and wheel power.
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-            telemetry.addData("Gyro", "yaw: %.2f | pitch: %.2f | roll: %.2f", angles.getYaw(AngleUnit.DEGREES), angles.getPitch(AngleUnit.DEGREES), angles.getRoll(AngleUnit.DEGREES));
-            telemetry.update();
+            drivetrain.joystickDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
         }
     }
 }
