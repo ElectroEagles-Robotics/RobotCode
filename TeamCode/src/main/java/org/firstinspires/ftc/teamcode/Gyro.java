@@ -8,7 +8,9 @@ public class Gyro {
     private final BHI260IMU imu;
 
     public Gyro(HardwareMap hardwareMap) {
+
         imu = hardwareMap.get(BHI260IMU.class, "imu");
+        while (!imu.initialize()) {}
     }
 
     public double getAngle() {

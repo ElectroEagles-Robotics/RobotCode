@@ -27,21 +27,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BHI260IMU;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.DriveTrain;
-import org.firstinspires.ftc.teamcode.Gyro;
-import org.firstinspires.ftc.teamcode.PIDController;
 
 
 /*
@@ -60,9 +49,6 @@ import org.firstinspires.ftc.teamcode.PIDController;
 @TeleOp(name="Basic Drive", group="Teleop")
 public class DriveOpMode extends LinearOpMode {
 
-    // Declare OpMode members.
-    private Gyro gyro;
-    private DriveTrain drivetrain;
 
 
     // PID control variables
@@ -74,14 +60,49 @@ public class DriveOpMode extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        gyro = new Gyro(hardwareMap);
-        drivetrain = new DriveTrain(hardwareMap, gyro);
+        Gyro gyro = new Gyro(hardwareMap);
+        DriveTrain drivetrain = new DriveTrain(hardwareMap, gyro);
+        Arm arm = new Arm(hardwareMap);
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+
         // Wait for the game to start (driver presses START)
         waitForStart();
 
 
         while (opModeIsActive()) {
-            drivetrain.joystickDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
+            drivetrain.joystickDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x, telemetry);
+
+            if (gamepad1.a) {
+                arm.clawToggle();
+            }
+
+            if (gamepad1.left_trigger > 0) {
+                arm.armDown();
+            } else if (gamepad1.right_trigger > 0) {
+                arm.armUp();
+            } else {
+                arm.armStay();
+            }
+
+            if (gamepad1.dpad_up) {
+                arm.clawUp();
+            } else if (gamepad1.dpad_down) {
+                arm.clawDown();
+            } else {
+                arm.clawStop();
+            }
+
+            if (gamepad1.x) {
+                arm.brushIn();
+            } else if (gamepad1.y) {
+                arm.brushOut();
+            } else {
+                arm.brushStop();
+            }
+
+            telemetry.update();
         }
     }
 }

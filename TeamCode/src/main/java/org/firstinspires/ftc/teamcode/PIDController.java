@@ -24,7 +24,9 @@ public class PIDController {
         this(kP, kI, kD, Double.POSITIVE_INFINITY);
     }
 
-
+    public double getTargetValue() {
+        return targetValue;
+    }
     public double update(double currentValue) {
         double error = targetValue - currentValue;
         integralSum += error * runtime.seconds();
