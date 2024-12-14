@@ -39,7 +39,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.DCMotorEx;
 import org.firstinspires.ftc.teamcode.DriveTrain;
 import org.firstinspires.ftc.teamcode.Gyro;
 import org.firstinspires.ftc.teamcode.PIDController;
@@ -62,8 +61,8 @@ import org.firstinspires.ftc.teamcode.PIDController;
 public class DriveOpMode extends LinearOpMode {
 
     // Declare OpMode members.
-    private final Gyro gyro = new Gyro(hardwareMap);
-    private final DriveTrain drivetrain = new DriveTrain(hardwareMap, gyro);
+    private Gyro gyro;
+    private DriveTrain drivetrain;
 
 
     // PID control variables
@@ -75,10 +74,8 @@ public class DriveOpMode extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
-
+        gyro = new Gyro(hardwareMap);
+        drivetrain = new DriveTrain(hardwareMap, gyro);
         // Wait for the game to start (driver presses START)
         waitForStart();
 
